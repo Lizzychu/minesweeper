@@ -13,7 +13,15 @@ MinGW 旨在為 Windows 環境下提供 GCC 及其他編譯所需的工具，透
 步驟如下:
 1. 前往 [MSYS2 首頁](https://www.msys2.org/)下載 MSYS2 安裝檔，下載完成後執行安裝檔
 2. 依照說明進行安裝，安裝路徑使用預設值即可
+
+![windows-install-mingw-step-2-1.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/windows-install-mingw-step-2-1.png)
+
+![windows-install-mingw-step-2-2.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/windows-install-mingw-step-2-2.png)
+
 3. 安裝完成後即可啟動 MSYS2
+
+![windows-install-mingw-step-3.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/windows-install-mingw-step-3.png)
+
 4. 在 MSYS2 下鍵入下列指令來安裝 MinGW 和 Make
 ```
 pacman -S mingw-w64-ucrt-x86_64-gcc
@@ -28,8 +36,17 @@ pacman -S make
 
 步驟如下:
 1. 前往 [SDL release](https://github.com/libsdl-org/SDL/releases) 下載 mingw 版本 release。以 2.26.1 版而言，選擇 ***SDL2-devel-2.26.1-mingw.zip***
+
+![windows-install-sdl-step-1.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/windows-install-sdl-step-1.png)
+
 2. 前往 [SDL_image release](https://github.com/libsdl-org/SDL_image/releases) 下載 mingw 版本 release。以 2.6.2 版而言，選擇 ***SDL2_image-devel-2.6.2-mingw.zip***
+
+![windows-install-sdl-step-2.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/windows-install-sdl-step-2.png)
+
 3. 下載完成後，解壓縮至踩地雷資料夾內即完成
+
+![windows-install-sdl-step-3.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/windows-install-sdl-step-3.png)
+
 
 ## Windows上編譯的方法
 
@@ -41,8 +58,18 @@ pacman -S make
 以下為步驟:
 1. 開啟 MSYS2 UCRT64，並用 `cd` 切換至踩地雷資料夾
 2. 輸入 `make` 開始編譯
-3. 輸入 `make dist` 開始建立發布軟體
+
+![windows-compile-make.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/windows-compile-make.png)
+
+3. 輸入 `make dist` 開始建立發布軟體，完成後即可見到 Minesweeper 資料夾
+
+![windows-compile-make-dist-1.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/windows-compile-make-dist-1.png)
+
+![windows-compile-make-dist-2.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/windows-compile-make-dist-2.png)
+
 4. 輸入 `make clean` 會清除所有編譯產物
+
+![windows-compile-make-clean.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/windows-compile-make-clean.png)
 
 ## Windows上執行的方法
 
@@ -52,7 +79,15 @@ pacman -S make
 
 步驟如下:
 1. 執行 `make dist` 完成後，會產生 Minesweeper 資料夾
+
+![windows-exec-step-1.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/windows-exec-step-1.png)
+
 2. 進入 Minesweeper 資料夾後，點擊 mine.exe 即可執行
+
+![windows-exec-step-2-1.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/windows-exec-step-2-1.png)
+
+![windows-exec-step-2-2.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/windows-exec-step-2-2.png)
+
 
 # Mac環境設定
 
@@ -70,15 +105,31 @@ clang++ --version
 Make --version
 ```
 
+![mac-install-env-check.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/mac-install-env-check.png)
+
 ## Mac 上安裝 SDL library 的方法
 
 踩地雷相依於 [SDL](https://github.com/libsdl-org/SDL) 及 [SDL_image](https://github.com/libsdl-org/SDL_image) 兩個額外的 library，在 Mac 稱之為 [Framework](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/OSX_Technology_Overview/SystemFrameworks/SystemFrameworks.html)。因為 Mac 的編譯環境相較於 Windows 限制較多，故須將 SDL 和 SDL_image 安裝至系統指定的路徑 (即 /Library/Frameworks)，以避免編譯過程出錯。
 
 步驟如下:
 1. 前往 [SDL release](https://github.com/libsdl-org/SDL/releases) 下載 Mac 版本 release。以 2.26.1 版而言，選擇 ***SDL2-2.26.1.dmg***
+
+![mac-install-sdl-step-1.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/mac-install-sdl-step-1.png)
+
 2. 前往 [SDL_image release](https://github.com/libsdl-org/SDL_image/releases) 下載 Mac 版本 release。以 2.6.2 版而言，選擇 ***SDL2_image-2.6.2.dmg***
+
+![mac-install-sdl-step-2.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/mac-install-sdl-step-2.png)
+
 3. 下載完成後，點擊 dmg 檔，並將其中的 SDL2.framework 拖曳 (即複製) 到 Finder 的 /Library/Framework。SDL2_image 作法亦同。請參考[此篇文章](https://support.apple.com/zh-tw/guide/mac-help/mchlp1236/mac)來開啟 /Library/Framework (即資源庫)。
+
+![mac-install-sdl-step-3.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/mac-install-sdl-step-3.png)
+
 4. 開啟 Finder 前往 /Library/Frameworks 確認 SDL2.framework 和 SDL2_image.framework 存在，即完成安裝
+
+![mac-install-sdl-step-4-1.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/mac-install-sdl-step-4-1.png)
+
+![mac-install-sdl-step-4-2.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/mac-install-sdl-step-4-2.png)
+
 
 ## Mac 上編譯的方法
 
@@ -89,9 +140,20 @@ Make --version
 
 以下為步驟:
 1. 開啟終端機，並用 `cd` 切換至踩地雷資料夾
+
+![mac-compile-open-terminal.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/mac-compile-open-terminal.png)
+
 2. 輸入 `make` 開始編譯
+
+![mac-compile-make.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/mac-compile-make.png)
+
 3. 輸入 `make dist` 開始建立 application bundle
+
+![mac-compile-make-dist.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/mac-compile-make-dist.png)
+
 4. 輸入 `make clean` 清除所有編譯產物
+
+![mac-compile-make-clean.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/mac-compile-make-clean.png)
 
 ## Mac 上執行的方法
 
@@ -99,7 +161,12 @@ Make --version
 
 步驟如下:
 1. 執行 `make dist` 完成後，會產生 Mine.app，在 Finder 顯示為一個有老師圖像的應用程式。
+
+![mac-exec-step-1.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/mac-exec-step-1.png)
+
 2. 點擊即可執行
+
+![mac-exec-step-2.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/mac-exec-step-2.png)
 
 
 
