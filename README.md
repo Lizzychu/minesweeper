@@ -28,11 +28,11 @@ pacman -S mingw-w64-ucrt-x86_64-gcc
 pacman -S make
 ```
 
-上述步驟都完成後，即完成 MSYS2、MinGW 及 Make 的安裝。以後若要開機 MSYS2 終端機，請選擇 MSYS2 UCRT64，其餘各種終端機的差異請見此連結。
+上述步驟都完成後，即完成 MSYS2、MinGW 及 Make 的安裝。以後若要開機 MSYS2 終端機，請選擇 ***MSYS2 UCRT64***，其餘各種終端機的差異請見[此連結](https://www.msys2.org/docs/environments/)。
 
 ## Windows上安裝 SDL library 的方法
 
-踩地雷相依於 [SDL](https://github.com/libsdl-org/SDL) 及 [SDL_image](https://github.com/libsdl-org/SDL_image) 兩個額外的 library。在 Windows 上安裝 SDL 相當簡單，只要前往 [SDL release](https://github.com/libsdl-org/SDL/releases) 和 SDL_image release 兩處下載，並至解壓縮至踩地雷資料夾即可。
+踩地雷相依於 [SDL](https://github.com/libsdl-org/SDL) 及 [SDL_image](https://github.com/libsdl-org/SDL_image) 兩個額外的 library。在 Windows 上安裝 SDL 相當簡單，只要前往 [SDL release](https://github.com/libsdl-org/SDL/releases) 和 [SDL_image release](https://github.com/libsdl-org/SDL_image/releases) 兩處下載，並至解壓縮至踩地雷資料夾即可。
 
 步驟如下:
 1. 前往 [SDL release](https://github.com/libsdl-org/SDL/releases) 下載 mingw 版本 release。以 2.26.1 版而言，選擇 ***SDL2-devel-2.26.1-mingw.zip***
@@ -46,7 +46,6 @@ pacman -S make
 3. 下載完成後，解壓縮至踩地雷資料夾內即完成
 
 ![windows-install-sdl-step-3.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/windows-install-sdl-step-3.png)
-
 
 ## Windows上編譯的方法
 
@@ -97,13 +96,14 @@ pacman -S make
 
 ## Mac 上安裝 clang++ 的方法
 
-clang++ 是 Mac 上預設的 C++ 編譯器，在 Mac 上只要安裝完 Xcode，便會安裝 clang++。同樣的，我們依靠 Make 作為我們建置的工具，安裝 Xcode 亦會一併將 Make給安裝好。
+clang++ 是 Mac 上預設的 C++ 編譯器，在 Mac 上只要安裝完 Xcode，便會安裝 clang++。同樣的，我們依靠 Make 作為我們建置的工具，安裝 Xcode 亦會一併將 Make 給安裝好。
 
 可以在終端機下執行下列指令確認 clang++ 和 Make 是否已經被安裝:
 ```
 clang++ --version
 Make --version
 ```
+若已經安裝完 Xcode，預期會出現類似如下結果
 
 ![mac-install-env-check.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/mac-install-env-check.png)
 
@@ -120,7 +120,7 @@ Make --version
 
 ![mac-install-sdl-step-2.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/mac-install-sdl-step-2.png)
 
-3. 下載完成後，點擊 dmg 檔，並將其中的 SDL2.framework 拖曳 (即複製) 到 Finder 的 /Library/Framework。SDL2_image 作法亦同。請參考[此篇文章](https://support.apple.com/zh-tw/guide/mac-help/mchlp1236/mac)來開啟 /Library/Framework (即資源庫)。
+3. 下載完成後，點擊 dmg 檔，並將其中的 SDL2.framework 拖曳 (即複製) 到 Finder 的 /Library/Frameworks (即資源庫)。SDL2_image 作法亦同。請參考[此篇文章](https://support.apple.com/zh-tw/guide/mac-help/mchlp1236/mac)來開啟 /Library/Frameworks 。
 
 ![mac-install-sdl-step-3.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/mac-install-sdl-step-3.png)
 
