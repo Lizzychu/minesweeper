@@ -1,6 +1,9 @@
 # target
-BIN = mine
-SOURCES = main.cpp game.cpp ui.cpp
+MINE = mine
+MINE_SOURCES = main.cpp game.cpp ui.cpp
+MINE_CMD = mine-cmd
+MINE_CMD_SOURCES = cmd.cpp game.cpp
+BIN = $(MINE) $(MINE_CMD)
 APP = Mine.app
 
 # commandline tools
@@ -19,10 +22,17 @@ CFLAGS = -Wextra -g -std=c++11 -stdlib=libc++ -O2 -iframework $(FRAMEWORK_PATH) 
 # - statically link standard libraries
 LDFLAGS = -F $(FRAMEWORK_PATH) -framework SDL2 -framework SDL2_image
 
+#This is the target that compiles our executable
+.PHONY: all
+all: dist
+
 %.o: %.cpp
 	$(COMPILER) $(CFLAGS) -o $@ $<
 
-$(BIN): $(SOURCES:.cpp=.o)
+$(MINE): $(MINE_SOURCES:.cpp=.o)
+	$(LINKER) -o $@ $^ $(LDFLAGS)
+
+$(MINE_CMD): $(MINE_CMD_SOURCES:.cpp=.o)
 	$(LINKER) -o $@ $^ $(LDFLAGS)
 
 .PHONY: dist
@@ -34,15 +44,12 @@ dist: $(BIN)
 	mkdir $(APP)/Contents/Resources
 	mkdir $(APP)/Contents/Frameworks
 
-	cp $(BIN) $(APP)/Contents/MacOS/$(BIN)
+	cp $(MINE) $(APP)/Contents/MacOS/$(MINE)
+	cp $(MINE_CMD) $(APP)/Contents/MacOS/$(MINE_CMD)
 	cp osx-support/Info.plist $(APP)/Contents
 	cp -rf images $(APP)/Contents/Resources/images
 	cp -rf $(SDL_IMAGE_FRAMEWORK) $(APP)/Contents/Frameworks
 	cp -rf $(SDL_FRAMEWORK) $(APP)/Contents/Frameworks
-
-#This is the target that compiles our executable
-.PHONY: all
-all: dist
 
 .PHONY: clean
 clean:
