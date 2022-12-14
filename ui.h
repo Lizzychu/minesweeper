@@ -1,5 +1,6 @@
 #include "sdl_headers.h"
 #include "game.h"
+#include "menu.h"
 
 #ifndef __MINE_UI_H__
 #define __MINE_UI_H__
@@ -62,7 +63,7 @@ class MineGameWindowUI {
         int RefreshWindow();
 
         int DispatchEvent(SDL_Event *e);
-        int HandleTimerEvent(SDL_UserEvent *e);
+        int HandleUserEvent(SDL_UserEvent *e);
 
         void ShowWinningSplash();
         void StopWinningSplash();
@@ -80,6 +81,7 @@ class MineGameWindowUI {
         CounterUI *mine_counter;
         CounterUI *time_counter;
         SplashScreen *winning_splash;
+        MineGameMenu *menu;
 
         // splash timer
         MineGameTimer *splash_timer;
@@ -249,5 +251,6 @@ class MineGridUI {
         // component rect
         SDL_Rect *rect;
 };
+
 
 #endif

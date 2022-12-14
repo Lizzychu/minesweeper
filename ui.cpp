@@ -133,6 +133,7 @@ MineGameWindowUI::MineGameWindowUI(MineGame *game)
     this->face_button = NULL;
     this->mine_counter = NULL;
     this->time_counter = NULL;
+    this->menu = NULL;
 
     this->winning_splash = NULL;
     this->splash_timer = NULL;
@@ -271,7 +272,7 @@ int MineGameWindowUI::DispatchEvent(SDL_Event *base_event)
     else if (SDL_USEREVENT <= base_event->type && base_event->type < SDL_LASTEVENT) {
         SDL_UserEvent *e = (SDL_UserEvent*)base_event;
 
-        this->HandleTimerEvent(e);
+        this->HandleUserEvent(e);
     }    
 
     MineGame::State new_state = this->game->GetGameState();
@@ -303,7 +304,7 @@ int MineGameWindowUI::DispatchEvent(SDL_Event *base_event)
     return 0;
 }
 
-int MineGameWindowUI::HandleTimerEvent(SDL_UserEvent *e)
+int MineGameWindowUI::HandleUserEvent(SDL_UserEvent *e)
 {
     if (e->type == this->count_down_timer->GetEventId()) {
         this->time_counter->IncreaseCount();
@@ -317,6 +318,21 @@ int MineGameWindowUI::HandleTimerEvent(SDL_UserEvent *e)
         } else {
             this->StopWinningSplash();
         }
+    } else if (e->type == this->menu->GetEventId()) {
+        unsigned int id = e->code;
+
+        std::cout << "menu event id = " << id << std::endl;
+        if (id == 0) {
+            this->game->SetBeginner();
+        } else if (id == 1) {
+            this->game->SetIntermediate();
+        } else if (id == 2) {
+            this->game->SetExpert();
+        }
+
+        this->mine_grid->SetGameSize(this->game->GetWidth(), this->game->GetHeight());
+        this->ResizeWindow();
+        this->GameReset();
     }
 
     return 0;
@@ -444,6 +460,10 @@ int MineGameWindowUI::CreateWindow()
 
     this->window_texture = new_texture;
 
+    // create menu
+    this->menu = new MineGameMenu();
+    this->menu->AttachMenu(this->window);
+
     return 0;
 }
 
@@ -470,6 +490,8 @@ int MineGameWindowUI::ResizeWindow()
 
     total_width = this->mine_grid->GetWidth() + WINDOWS_EDGE_MARGIN * 2;
     total_height = this->mine_grid->GetHeight() + this->mine_counter->GetHeight() + WINDOWS_EDGE_MARGIN * 3;
+
+    std::cout << "MineGameWindowUI::ResizeWindow, width = " << total_width << ", height = " << total_height << std::endl;
 
     // always get a new texture when resized
     if (true) {
@@ -503,6 +525,12 @@ int MineGameWindowUI::ResizeWindow()
 
 void MineGameWindowUI::DestroyWindow()
 {
+    if (this->menu != NULL) {
+        this->menu->DetachMenu();
+        delete this->menu;
+        this->menu = NULL;
+    }
+
     if (this->window_texture != NULL) {
         SDL_DestroyTexture(this->window_texture);
         this->window_texture = NULL;
@@ -1361,3 +1389,4 @@ int MineGridUI::RedrawDirtyGrids()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
+

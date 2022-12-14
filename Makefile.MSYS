@@ -1,6 +1,6 @@
 # target
 MINE = mine.exe
-MINE_SOURCES = main.cpp game.cpp ui.cpp
+MINE_SOURCES = main.cpp game.cpp ui.cpp menu.cpp menu-windows.cpp
 MINE_CMD = mine-cmd.exe
 MINE_CMD_SOURCES = cmd.cpp game.cpp
 BIN = $(MINE) $(MINE_CMD)
