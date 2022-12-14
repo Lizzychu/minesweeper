@@ -1,6 +1,6 @@
 # target
 MINE = mine
-MINE_SOURCES = main.cpp game.cpp ui.cpp
+MINE_SOURCES = main.cpp game.cpp ui.cpp menu.cpp
 MINE_CMD = mine-cmd
 MINE_CMD_SOURCES = cmd.cpp game.cpp
 BIN = $(MINE) $(MINE_CMD)
@@ -16,7 +16,9 @@ SDL_IMAGE_FRAMEWORK = $(FRAMEWORK_PATH)/SDL2_image.framework
 SDL_FRAMEWORK = $(FRAMEWORK_PATH)/SDL2.framework
 
 # compiler flags
-CFLAGS = -Wextra -g -std=c++11 -stdlib=libc++ -O2 -iframework $(FRAMEWORK_PATH) -c
+CPP_SPEC = -std=c++11 -stdlib=libc++
+OBJC_SPEC = -ObjC
+CFLAGS = -Wextra -g -O2 -iframework $(FRAMEWORK_PATH) -c
 
 # link flags
 # - statically link standard libraries
@@ -27,9 +29,12 @@ LDFLAGS = -F $(FRAMEWORK_PATH) -framework SDL2 -framework SDL2_image
 all: dist
 
 %.o: %.cpp
-	$(COMPILER) $(CFLAGS) -o $@ $<
+	$(COMPILER) $(CPP_SPEC) $(CFLAGS) -o $@ $<
 
-$(MINE): $(MINE_SOURCES:.cpp=.o)
+menu-mac.o: menu-mac.mm
+	$(COMPILER) $(OBJC_SPEC) $(CFLAGS) -o $@ $<
+
+$(MINE): $(MINE_SOURCES:.cpp=.o) menu-mac.o
 	$(LINKER) -o $@ $^ $(LDFLAGS)
 
 $(MINE_CMD): $(MINE_CMD_SOURCES:.cpp=.o)
