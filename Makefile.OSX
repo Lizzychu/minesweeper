@@ -22,7 +22,7 @@ CFLAGS = -Wextra -g -O2 -iframework $(FRAMEWORK_PATH) -c
 
 # link flags
 # - statically link standard libraries
-LDFLAGS = -F $(FRAMEWORK_PATH) -framework SDL2 -framework SDL2_image
+LDFLAGS = -F $(FRAMEWORK_PATH) -framework SDL2 -framework SDL2_image -framework Cocoa
 
 #This is the target that compiles our executable
 .PHONY: all
