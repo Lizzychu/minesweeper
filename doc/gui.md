@@ -71,6 +71,7 @@ int main(int argc, char** argv)
 ```
 ### 視窗
 
+#### Member variables
 視窗由 `MineGameWindowUI` 這個 C++ class 實現，他的 member variable 可以分為幾類
  * `MineGame`相關
    * `game`: 他是一個指向 `MineGame` 的 pointer，讓視窗可以和 `MineGame` 互動
@@ -86,6 +87,57 @@ int main(int argc, char** argv)
    * `time_counter`: 他也是一個指向 `CounterUI` 的 pointer，代表視窗右上角的經過時間計數器
    * `winning_splash`: 他是一個指向 `SplashScreen` 的 pointer，代表遊戲勝利後的過場畫面
    * `menu`: 他是一個指向 `MineGameMenu` 的 pointer，代表視窗的功能表
-  * 計時器
+ * 計時器
    * `splash_timer`: 一個指向 `MineGameTimer` 的 pointer，用於過場畫面(即 `winning_splash`)的計時
    * `count_down_timer`: 一個指向 `MineGameTimer` 的 pointer，用於遊戲經過時間的計時
+
+#### Member functions
+
+`MineGameWindowUI` 最重要的程式碼進入點在於 `ProcessEvents` 這個 function。
+
+`ProcessEvents` 內部為一個無窮迴圈，不停處理來自使用者的各種事件，由於 SDL 已經在各平台(如 Windows、Mac OS X)上幫我們封裝並統一行為，我們這邊便可以透過相同的程式碼來進行跨平台開發。在收到 SDL Event 後，若他是一個 SDL_QUIT 事件，我們便跳出迴圈準備結束程式；若是其他事件，我們進入 `DispatchEvent` 來進行處理。
+
+最後，處理完事件後，我們呼叫 `RefreshWindow` 來更新視窗區域。程式碼如下
+
+```C++
+int MineGameWindowUI::ProcessEvents()
+{
+    while (true) {
+        SDL_Event e; 
+
+        if (SDL_WaitEvent(&e) <= 0) {
+            std::cerr << "SDL_WaitEvent failed with error: " << SDL_GetError() << std::endl;
+            continue;
+        }
+
+        if (e.type == SDL_QUIT) {
+            std::cout << "got quit event" << std::endl;
+            break;
+        }
+
+        this->DispatchEvent(&e);
+        this->RefreshWindow();
+    }
+
+    return 0;
+}
+```
+
+`DispatchEvent` 是 `MineGameWindowUI` 處理各種事件的核心，簡述邏輯如下
+ * `DispatchEvent` 內會先透過 `GetGameState` 來取得處理事件前的 `MineGame` 狀態
+ * 之後會分辨 SDL Event 的種類來傳送給正確的元件處理，例如
+   * 滑鼠移動 ([SDL_MouseMotionEvent](https://wiki.libsdl.org/SDL2/SDL_MouseMotionEvent)) 與滑鼠點擊 ([SDL_MouseButtonEvent](https://wiki.libsdl.org/SDL2/SDL_MouseButtonEvent))事件會傳送給 `face_button` 和 `mine_grid` 來處理，這兩個元件會再透過 `game` pointer 與 `MineGame` 互動
+   * 其餘事件都是由 SDL User Event 觸發，包含
+     * `count_down_timer` 觸發的 Timer 事件會導致 `time_counter` (遊戲時間經過計數器) 增加
+     * `splash_timer` 觸發的 Timer 事件會導致 `winning_splash` (遊戲勝利過場畫面) 重繪
+     * 視窗功能表觸發的事件(選擇遊戲難易程度)會進而透過 `game` 改變遊戲難度，進而觸發視窗重繪
+ * 處理完事件後，特別是上述的滑鼠相關事件，會再透過 `GetGameState`確認事件前後遊戲狀態是否有改變
+   * 如果遊戲從 GAME_READY 變為 GAME_RUNNING，會觸發 `count_down_timer` 開始計時
+   * 如果遊戲從 GAME_RUNNING 變為 GAME_WON 或 GAME_LOST，會觸發繪製勝利過場畫面(贏了)或改變 `face_button` 的外觀(輸了)，並停止 `count_down_timer` 計時
+
+除上述主要進入點之外，`MineGameWindowUI`亦提供一些 function 讓元件可以與之互動
+ * `LoadTextureFromFile`: 讀取一個 png 檔案，並將之轉為 texture，可用於後續視窗繪圖
+ * `UpdateWindowTexture`: 讓各元件可以將它內部保有的 texture 繪製於視窗上
+
+
+
