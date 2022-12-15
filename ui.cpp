@@ -520,6 +520,7 @@ int MineGameWindowUI::ResizeWindow()
     this->mine_counter->SetLocation(WINDOWS_EDGE_MARGIN, WINDOWS_EDGE_MARGIN);
     this->time_counter->SetLocation(total_width - WINDOWS_EDGE_MARGIN - this->time_counter->GetWidth(), WINDOWS_EDGE_MARGIN);
     this->face_button->SetLocation(((total_width - this->face_button->GetWidth()) / 2), WINDOWS_EDGE_MARGIN);
+    this->winning_splash->SetWindowSize(total_width, total_height);
 
     this->RedrawWindow();
     this->RefreshWindow();
@@ -588,6 +589,7 @@ int MineGameWindowUI::RefreshWindow()
 void MineGameWindowUI::ShowWinningSplash()
 {  
     std::cout << "start winning splash" << std::endl;
+
     // update at 20 FPS
     this->splash_timer->Add(50);
     this->winning_splash->Show();
@@ -608,16 +610,44 @@ SplashScreen::SplashScreen(MineGameWindowUI *window)
     this->window = window;
     this->texture = NULL;
     this->alpha = 0;
+    this->rect = new SDL_Rect();
 }
 
 SplashScreen::~SplashScreen()
 {
     this->ReleaseResources();
+    delete this->rect;
 }
 
-void SplashScreen::SetLocation(int x, int y)
+void SplashScreen::SetWindowSize(int window_width, int window_height)
 {
+    int texture_w, texture_h;
 
+    SDL_QueryTexture(this->texture, NULL, NULL, &texture_w, &texture_h);
+
+    rect->w = texture_w;
+    rect->h = texture_h;
+
+    // fit width
+    if (rect->w > window_width) {
+        int w = window_width;
+        int h = (double)rect->h * window_width / rect->w;
+
+        rect->w = w;
+        rect->h = h;
+    } 
+
+    // fit height
+    if (rect->h > window_height) {
+        int h = window_height;
+        int w = (double)rect->w * window_height / rect->h;
+
+        rect->w = w;
+        rect->h = h;
+    }
+
+    rect->x = (window_width - rect->w) / 2;
+    rect->y = window_height - rect->h;
 }
 
 int SplashScreen::LoadResources()
@@ -636,47 +666,29 @@ void SplashScreen::ReleaseResources()
 
 void SplashScreen::Show()
 {
-    SDL_Rect rect;
-
-    rect.x = 10;
-    rect.y = 10;
-
     this->alpha = 0;
-
-    SDL_QueryTexture(this->texture, NULL, NULL, &rect.w, &rect.h);
     SDL_SetTextureAlphaMod(this->texture, this->alpha);
-    this->window->UpdateWindowTexture(this->texture, &rect);
+
+    this->window->UpdateWindowTexture(this->texture, this->rect);
 }
 
 void SplashScreen::Update(Uint64 elapse_time_ms)
 {
-    SDL_Rect rect;
     Uint64 a;
 
-    rect.x = 10;
-    rect.y = 10;
-
-    // 
     a = elapse_time_ms * 255 / 3000;
     this->alpha = (a > 255) ? 255 : (Uint32)a;
 
-    SDL_QueryTexture(this->texture, NULL, NULL, &rect.w, &rect.h);
     SDL_SetTextureAlphaMod(this->texture, this->alpha);
-    this->window->UpdateWindowTexture(this->texture, &rect);
+    this->window->UpdateWindowTexture(this->texture, this->rect);
 }
 
 void SplashScreen::Hide()
 {
-    SDL_Rect rect;
-
-    rect.x = 10;
-    rect.y = 10;
-
     this->alpha = 0;
-
-    SDL_QueryTexture(this->texture, NULL, NULL, &rect.w, &rect.h);
     SDL_SetTextureAlphaMod(this->texture, alpha);
-    this->window->UpdateWindowTexture(this->texture, &rect);
+
+    this->window->UpdateWindowTexture(this->texture, this->rect);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

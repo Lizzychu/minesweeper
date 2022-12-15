@@ -98,7 +98,7 @@ class SplashScreen {
         SplashScreen(MineGameWindowUI *window);
         ~SplashScreen();
 
-        void SetLocation(int x, int y);
+        void SetWindowSize(int w, int h);
 
         int LoadResources();
         void ReleaseResources();
@@ -112,6 +112,7 @@ class SplashScreen {
         MineGameWindowUI *window;
         Uint8 alpha;
         SDL_Texture *texture;
+        SDL_Rect *rect;
 };
 
 class CounterUI {
