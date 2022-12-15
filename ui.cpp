@@ -323,16 +323,20 @@ int MineGameWindowUI::HandleUserEvent(SDL_UserEvent *e)
 
         std::cout << "menu event id = " << id << std::endl;
         if (id == 0) {
-            this->game->SetBeginner();
+            this->game->SetCustom(30, 16, 10);
         } else if (id == 1) {
-            this->game->SetIntermediate();
+            this->game->SetBeginner();
         } else if (id == 2) {
+            this->game->SetIntermediate();
+        } else if (id == 3) {
             this->game->SetExpert();
         }
 
+        this->mine_counter->SetCount(this->game->GetMineCount());
         this->mine_grid->SetGameSize(this->game->GetWidth(), this->game->GetHeight());
+        this->count_down_timer->Remove();
+        this->StopWinningSplash();
         this->ResizeWindow();
-        this->GameReset();
     }
 
     return 0;

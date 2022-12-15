@@ -45,7 +45,7 @@ LRESULT CALLBACK menu_hook(int nCode, WPARAM wParam, LPARAM lParam)
         SDL_PushEvent(&event);
 
         // check / uncheck menu item
-        for (unsigned int i = 0; i <= 2; i++) {
+        for (unsigned int i = 0; i <= 3; i++) {
             if (id == i) {
                 CheckMenuItem(the_only_menu.menu, (UINT)i, MF_CHECKED);
             } else {
@@ -76,9 +76,10 @@ static int menu_attach_menu(struct WindowsMenu *win_menu, SDL_Window *window)
     HMENU menu = CreateMenu();
 
     AppendMenu(menubar, MF_POPUP, (UINT_PTR)menu, "Level");
-    AppendMenu(menu, MF_STRING, 0, "Easy");
-    AppendMenu(menu, MF_STRING, 1, "Intermediate");
-    AppendMenu(menu, MF_STRING, 2, "Expert");
+    AppendMenu(menu, MF_STRING, 0, "DEMO");
+    AppendMenu(menu, MF_STRING, 1, "Easy");
+    AppendMenu(menu, MF_STRING, 2, "Intermediate");
+    AppendMenu(menu, MF_STRING, 3, "Expert");
 
     SetMenu(hwnd, menubar);
 
