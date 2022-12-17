@@ -84,7 +84,7 @@ int main(int argc, char** argv)
  * 視窗與繪圖相關: 如前所述，視窗要負責 GUI 的繪製，因此 `MineGameWindowUI` 內部保留以下 member variables 實作相關功能
    * `window`: 他是一個指向 SDL_Window 的 pointer，代表視窗本身
    * `renderer`: 他是一個指向 [SDL_Renderer](https://wiki.libsdl.org/SDL2/SDL_Renderer) 的 pointer，代表視窗的渲染器 (可以想像是 GPU，負責繪製視窗圖面的裝置)
-   * `window_texture`: 他是一個指向 [SDL_Texture](https://wiki.libsdl.org/SDL2/SDL_Texture) 的 pointer，代表視窗的 texture (可以想像是一張圖，這張圖被更新後要透過 `renderer` 繪製到視窗上`renderer` 繪製到視窗上)
+   * `window_texture`: 他是一個指向 [SDL_Texture](https://wiki.libsdl.org/SDL2/SDL_Texture) 的 pointer，代表視窗的 texture (可以想像是一張圖，這張圖被更新後要透過 `renderer` 繪製到螢幕上)
    * `window_texture_dirty`: 代表 `window_texture` 是否有被更新，只有當 `window_texture` 被更新後，我們才進行繪圖，這可以避免過度更新視窗內容以增進效率、節省運算資源
  * 元件相關
    * `mine_grid`: 他是一個指向 `MineGridUI` 的 pointer，代表踩地雷可點擊的格狀區域
@@ -211,3 +211,126 @@ int FaceButtonUI::HandleMouseButtonEvent(SDL_MouseButtonEvent *event)
 若是左鍵上彈 (SDL_MOUSEBUTTONUP)，設定為 unpressed 狀態如下圖，並同時通知 `MineGame` 做 `Reset`
 
 ![face_unpressed.png](https://github.com/Lizzychu/minesweeper/blob/master/images/png/face_unpressed.png)
+
+#### 元件繪圖介面
+
+元件主要透過 `MineGameWindowUI::UpdateWindowTexture` 將自身繪製於視窗上。`UpdateWindowTexture` 實作便是依靠 SDL API 透過 `renderer` (視窗繪圖器) 將傳入的 `texture` (即元件本身的圖層) 繪製於 `window_texture` (即視窗圖層) 上，並將 `window_texture_dirty` 設為 `true`，如此一來下次呼叫 `RefreshWindow` 便會更新視窗內容(繪製於視窗圖層後，尚需呼叫 `RefreshWindow` 才會將視窗圖層更新於螢幕上)。程式碼如下
+
+```C++
+int MineGameWindowUI::UpdateWindowTexture(SDL_Texture *texture, const SDL_Rect *rect)
+{
+    if (this->window_texture != NULL) {
+        SDL_SetRenderTarget(this->renderer, this->window_texture);
+        SDL_RenderCopy(this->renderer, texture, NULL, rect);
+        this->window_texture_dirty = true;
+    }
+
+    return 0;
+}
+```
+
+`MineGameWindowUI::RefreshWindow` 是更新視窗內容的實作，如前所述，該函式內部會先檢查 `window_texture_dirty` 是否為 `true`，以確保在視窗內容沒有改變的狀況下，不需要更新視窗內容於螢幕，以免過度消耗資源，其實作如下
+
+```C++
+int MineGameWindowUI::RefreshWindow()
+{
+    // update texture to window
+    if (this->window_texture != NULL && this->window_texture_dirty) {
+        std::cout << "RefreshWindow" << std::endl;
+
+        SDL_SetRenderTarget(this->renderer, NULL);
+        SDL_RenderCopy(this->renderer, this->window_texture, NULL, NULL);
+        SDL_RenderPresent(this->renderer);
+        this->window_texture_dirty = false;
+    }
+
+    return 0;
+}
+```
+
+#### 繪製元件的方式
+
+在 GUI 內部，每一個元件都負責更新自身於螢幕特定的繪圖區域，如下圖所示
+
+![gui-drawing-area](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/gui-drawing-area.png)
+
+觀察上圖可以知道，每一個元件有自身繪圖區域，***除了 mine_grid 大小可能因為遊戲難度改變之外，其餘所有元件的大小都是固定的***。除此之外，元件與元件之間尚有間隙，這個***間隙大小也是固定的***，他在程式碼中定義為 `WINDOWS_EDGE_MARGIN`，他的大小是 10 (即 10 個像素)，程式碼如下
+
+```C++
+#define WINDOWS_EDGE_MARGIN 10
+```
+
+由於視窗大小會隨遊戲難易程度而改變，因此當遊戲改變難易度導致視窗改變大小時，因為元件大小與元件之間的間隙是固定的，我們只要知道元件繪圖時所在的位置，便可以定義上圖中的元件繪圖區域。而元件的位置是動態在視窗改變大小時所呼叫的 `ResizeWindow` 內所決定的，其程式碼如下:
+
+```C++
+int MineGameWindowUI::ResizeWindow()
+{
+    int total_width, total_height;
+
+    // 視窗寬度為 mine_grid 寬度加上 2 個間隙
+    // 視窗高度為 mine_grid 高度加上 3 個間隙
+    total_width = this->mine_grid->GetWidth() + WINDOWS_EDGE_MARGIN * 2;
+    total_height = this->mine_grid->GetHeight() + this->mine_counter->GetHeight() + WINDOWS_EDGE_MARGIN * 3;
+    ...
+
+    this->mine_grid->SetLocation(WINDOWS_EDGE_MARGIN, this->mine_counter->GetHeight() + WINDOWS_EDGE_MARGIN * 2);
+    this->mine_counter->SetLocation(WINDOWS_EDGE_MARGIN, WINDOWS_EDGE_MARGIN);
+    this->time_counter->SetLocation(total_width - WINDOWS_EDGE_MARGIN - this->time_counter->GetWidth(), WINDOWS_EDGE_MARGIN);
+    this->face_button->SetLocation(((total_width - this->face_button->GetWidth()) / 2), WINDOWS_EDGE_MARGIN);
+    ...
+}
+```
+
+在了解元件定位與元件繪圖介面後，以下便是 `RedrawWindow` 更新視窗內容的流程
+1. 首先設定 `renderer` (繪圖器)目標為 windows_texture (即視窗圖層)
+2. 設定 `renderer` 色彩為 (R, G, B) = (0xC0, 0xC0, 0xC0)，即我們看到視窗的淺灰色
+3. 呼叫 [SDL_RenderFillRect](https://wiki.libsdl.org/SDL2/SDL_RenderFillRect) 將視窗圖層畫上淺灰色，此時視窗圖層會是一個淺灰色的矩形
+4. 依序針對每個元件呼叫其 `Redraw` 介面，要求元件將其繪於視窗圖層上，如此一來上圖繪圖區域中的黑色部分，就會是元件的樣子
+
+程式碼如下
+
+```C++
+int MineGameWindowUI::RedrawWindow()
+{
+    // set background to gray
+    SDL_SetRenderTarget(this->renderer, this->window_texture);
+    SDL_RenderClear(this->renderer);
+    SDL_SetRenderDrawColor(this->renderer, 0xC0, 0xC0, 0xC0, 0);
+    SDL_RenderFillRect(this->renderer, NULL);
+
+    // redraw components
+    this->mine_grid->Redraw();
+    this->time_counter->Redraw();
+    this->mine_counter->Redraw();
+    this->face_button->Redraw();
+
+    return 0;
+}
+```
+
+最後以 `FaceButtonUI` 為例，在其 `Redraw` 實作中，便會參考他內部狀態，進而呼叫 `UpdateWindowTexture` 將正確的圖像繪製於視窗圖層中正確的區域，程式碼如下:
+
+```C++
+int FaceButtonUI::Redraw()
+{
+    // pressed
+    if (this->current_status == STATUS_FACE_PRESSED) {
+        this->window->UpdateWindowTexture(this->face_pressed, this->GetRect());
+    }
+    // unpressed
+    else if (this->current_status == STATUS_FACE_UNPRESSED) {
+        this->window->UpdateWindowTexture(this->face_unpressed, this->GetRect());
+    }
+    // win
+    else if (this->current_status == STATUS_FACE_WIN) {
+        this->window->UpdateWindowTexture(this->face_win, this->GetRect());
+    }
+    // lose
+    else {
+        this->window->UpdateWindowTexture(this->face_lose, this->GetRect());
+    }
+
+    return 0;
+}
+```
+
