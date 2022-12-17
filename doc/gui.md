@@ -149,7 +149,65 @@ int MineGameWindowUI::ProcessEvents()
  * `LoadTextureFromFile`: 讀取一個 png 檔案，並將之轉為 texture，可用於後續視窗繪圖
  * `UpdateWindowTexture`: 讓各元件可以將它內部保有的 texture 繪製於視窗上
 
+#### 處理使用者輸入事件
 
+如前段所述，視窗主要是透過 [SDL_WaitEvent](https://wiki.libsdl.org/SDL2/SDL_WaitEvent) 獲得相對應的 SDL_Event，並分析該事件的類型，將之總送給需要負責的元件來處理。以下就滑鼠點擊事件([SDL_MouseButtonEvent](https://wiki.libsdl.org/SDL2/SDL_MouseButtonEvent))流程進行說明
 
+1. 在視窗中(即 `MineGameWindowUI::DispatchEvent`)，會初步針對事件類型進行分類，並將之轉送給相對應的元件，程式碼如下
 
+```C++
+int MineGameWindowUI::DispatchEvent(SDL_Event *base_event)
+{
+    ...
+    // mouse click
+    else if (base_event->type == SDL_MOUSEBUTTONUP || base_event->type == SDL_MOUSEBUTTONDOWN) {
+        SDL_MouseButtonEvent *e = (SDL_MouseButtonEvent*)base_event;
 
+        this->face_button->HandleMouseButtonEvent(e);
+        this->mine_grid->HandleMouseButtonEvent(e);
+    }
+    ...
+}
+```
+
+2. 在元件內部，會透過該事件所需攜帶的參數，判斷滑鼠點擊的位置，***如果點擊在元件內部，則元件必須要處理這個事件***。以 `FaceButtonUI` (微笑按鈕) 而言，他的處理邏輯如下
+
+```C++
+int FaceButtonUI::HandleMouseButtonEvent(SDL_MouseButtonEvent *event)
+{
+    int x1, x2, y1, y2;
+
+    // (x1, y1) 為左上角, (x2, y2) 為右下角
+    x1 = this->GetRect()->x;
+    x2 = this->GetRect()->x + this->GetRect()->w;
+    y1 = this->GetRect()->y;
+    y2 = this->GetRect()->y + this->GetRect()->h;
+
+    // 如果事件點擊位置 (x, y) 落在 (x1, y1) 到 (x2, y2) 圍成的矩形內，則處理該事件
+    // 若左鍵下壓，設按鈕為下壓狀態 (pressed)；若左鍵上彈，設按鈕為回復狀態 (unpressed)
+    if (x1 <= event->x && event->x < x2 && y1 <= event->y && event->y < y2) {
+        if (event->button == SDL_BUTTON_LEFT) {
+            if (event->type == SDL_MOUSEBUTTONDOWN) {
+                this->SetStatus(FaceButtonUI::STATUS_FACE_PRESSED);
+            } else if (event->type == SDL_MOUSEBUTTONUP) {
+                this->SetStatus(FaceButtonUI::STATUS_FACE_UNPRESSED);
+                this->window->GameReset();
+            }
+       }
+    }
+
+    return 0;
+}
+```
+
+以下為示意圖，若滑鼠點擊位置 (x, y) 落在 (x1, y1) 到 (x2, y2) 圍成的矩形內，則視滑鼠是左鍵下壓或上彈事件，設定按鈕狀態
+
+![gui-face-button-event.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/gui-face-button-event.png)
+
+若是左鍵下壓 (SDL_MOUSEBUTTONDOWN)，設定為 pressed 狀態如下圖
+
+![face_pressed.png](https://github.com/Lizzychu/minesweeper/blob/master/images/png/face_pressed.png)
+
+若是左鍵上彈 (SDL_MOUSEBUTTONUP)，設定為 unpressed 狀態如下圖
+
+![face_unpressed.png](https://github.com/Lizzychu/minesweeper/blob/master/images/png/face_unpressed.png)
