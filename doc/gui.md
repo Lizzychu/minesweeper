@@ -398,3 +398,96 @@ int CounterUI::LoadResources()
 }
 ```
 
+### 地雷區域的實作
+
+地雷區域以 `MineGridUI` 這個 C++ class 來實現，是整個踩地雷遊戲中最重要的元件，他負責處理滑鼠點擊事件、將事件翻譯並轉送 `MineGame` 與之互動、並將互動結果顯示於 GUI 上。他最主要的進入點在 `MineGridUI::HandleMouseButtonEvent`，其流程如下
+1. 如 `FaceButtonUI`，`MineGridUI` 會確認滑鼠點擊位置 (`x`, `y`) 確實位於其繪圖區域內部，僅處理其繪圖區域內部之事件
+2. 當滑鼠點擊其繪圖區域內部後，會將滑鼠點擊座標 (`x`, `y`) 轉換為 grid 座標 (`index_x`, `index_y`)，即 `MineGame` 所知道的踩地雷圖面格子的座標
+   * 每個踩地雷格子寬和高都定義為 `MINE_GRID_MINE_SIZE`，固定為 24px
+   * 若點擊之座標 x 和繪圖區左上角 x1 之相對座標介於 0 ~ 23，就是點擊在第 1 欄；若點擊之座標 x 介於 24 ~ 46，就是點擊在第 2 欄；依此類推
+   * 若點擊之座標 y 和繪圖區左上角 y1 之相對座標介於 0 ~ 23，就是點擊在第 1 行；若點擊之座標 x 介於 24 ~ 46，就是點擊在第 2 行；依此類推
+   * 由上可知，轉換公式如下
+      * `index_x = (event->x - x1) / MINE_GRID_MINE_SIZE`
+      * `index_y = (event->y - y1) / MINE_GRID_MINE_SIZE`
+3. 在得知 (`index_x`, `index_y`) 即所知道的踩地雷圖面格子的座標後，視滑鼠行為呼叫正確 function 與 `MineGame` 互動
+   * 若是點擊滑鼠左鍵後上彈，呼叫 `MineGame::Open` 打開一格
+   * 若是點擊滑鼠右鍵後上彈，呼叫 `MineGame::TouchFlag` 在那一格上放置或收回旗幟
+4. 呼叫 `RedrawDirtyGrids` 更新 `MineGridUI` 元件之圖層
+
+程式碼如下
+
+```C++
+int MineGridUI::HandleMouseButtonEvent(SDL_MouseButtonEvent *event)
+{
+    int x1, x2, y1, y2;
+
+    x1 = this->GetRect()->x;
+    x2 = this->GetRect()->x + this->GetRect()->w;
+    y1 = this->GetRect()->y;
+    y2 = this->GetRect()->y + this->GetRect()->h;
+
+    // 確保滑鼠點擊位置 (x, y) 位於 (x1, y1) 和 (x2, y2) 之矩形內部
+    if (x1 <= event->x && event->x < x2 && y1 <= event->y && event->y < y2) {
+        // 將滑鼠點擊位置轉換為 grid 座標
+        if (event->x - x1 > MINE_GRID_EDGE_MARGIN && event->y - y1 > MINE_GRID_EDGE_MARGIN) {
+            int index_x = (event->x - x1) / MINE_GRID_MINE_SIZE;
+            int index_y = (event->y - y1) / MINE_GRID_MINE_SIZE;
+
+            // 視滑鼠行為呼叫 Open 或 TouchFlag
+            if (event->button == SDL_BUTTON_LEFT && event->type == SDL_MOUSEBUTTONUP) {
+                this->window->GameOpen(index_x, index_y);
+            } else if (event->button == SDL_BUTTON_RIGHT && event->type == SDL_MOUSEBUTTONUP) {
+                this->window->GameTouchFlag(index_x, index_y);
+            }   
+
+            this->RedrawDirtyGrids();
+        }
+    }
+  
+    return 0;
+}
+```
+
+`RedrawDirtyGrids` 顧名思義，就是將 dirty grids (狀態改變的踩地雷圖面格子) 重繪。如前所述，依照[互動示意圖](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/gui-game-interaction.png)，每次 GUI 與 `MineGame` 互動後都要呼叫 `MineGame::GetDirtyGrids` 和 `MineGame::ClearDirtyGrids` 並更新 GUI 以顯示圖面格子最新狀態。這部分就是在 `RedrawDirtyGrids` 內實作的，其流程如下
+1. 透過 `MineGameWindoeUI::GameGetDirtyGrids` 取得狀態改變的格子，事實上這個 function 內部就是對 `MineGame` 呼叫上述 `GetDirtyGrids` 和 `ClearDirtyGrids`
+2. 取得狀態改變的格子後，針對每一個 `grids[i]` (即踩地雷格子)，更新其所在元件圖層的位置
+   * 若 `grids[i]` 在 `MineGame` 之 `x` 座標為 0，其元件圖層之繪圖相對座標亦為 0
+   * 若 `grids[i]` 在 `MineGame` 之 `x` 座標為 1，其元件圖層之繪圖相對座標為 24，因為每一格寬高都為 24
+   * 若 `grids[i]` 在 `MineGame` 之 `x` 座標為 2，其元件圖層之繪圖相對座標為 48，因為每一格寬高都為 24
+   * 其餘 x 座標、y 座標皆以此類推
+   * 由上可以得知，若以一矩形 `rect` 代表 `grids[i]` 所在元件圖層的相對位置及其大小，其轉換公式如下，其中 `MINE_GRID_EDGE_MARGIN` 是 `MineGridUI` 元件內部與 grids 留白的間隙，定義為 2px
+     * 矩形之相對位置 x 座標: `rect.x = grids[i].x * MINE_GRID_MINE_SIZE + MINE_GRID_EDGE_MARGIN;`
+     * 矩形之相對位置 y 座標: `rect.y = grids[i].y * MINE_GRID_MINE_SIZE + MINE_GRID_EDGE_MARGIN;`
+     * 矩形之寬度: `rect.w = MINE_GRID_MINE_SIZE;`
+     * 矩形之高度: `rect.h = MINE_GRID_MINE_SIZE;`
+
+其程式碼如下
+
+```C++
+int MineGridUI::RedrawDirtyGrids()
+{
+    std::vector<MineGameGrid> grids;
+
+    // 透過 MineGameWindowUI 取得狀態改變的格子
+    this->window->GameGetDirtyGrids(grids);
+
+    for (size_t i = 0; i < grids.size(); i++) {
+        SDL_Rect rect;
+
+        // 找出每一個格子所在的矩形區域
+        rect.x = grids[i].x * MINE_GRID_MINE_SIZE + MINE_GRID_EDGE_MARGIN;
+        rect.y = grids[i].y * MINE_GRID_MINE_SIZE + MINE_GRID_EDGE_MARGIN;
+        rect.w = MINE_GRID_MINE_SIZE;
+        rect.h = MINE_GRID_MINE_SIZE;
+
+        // 依照格子的狀態, 選擇正確的圖示並將之更新於元件圖層上
+        ... 
+    }
+
+    // 將元件圖層更新於視窗圖層上
+    this->Redraw();
+
+    return 0;
+}
+```
+
