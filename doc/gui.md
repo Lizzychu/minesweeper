@@ -334,3 +334,67 @@ int FaceButtonUI::Redraw()
 }
 ```
 
+### 計數器的實作
+
+計數器(`CounterUI`)如前所述，是 `mine_counter` (計算剩餘地雷數量)和 `timer_counter` (計算遊戲經過時間) 的 GUI 實作。他主要用途就是將一個數字轉為 GUI 顯示在螢幕上。以 `mine_counter` 為例，每當 GUI 與 `MineGame` 互動後，GUI 會透過 `GetFlagCount` 得知玩家在遊戲圖面插了幾隻旗子，剩餘地雷數量便定義為**地雷數量減去旗幟數量**。他的實作方法非常簡單，作法是將數字百位數、十位數、個位數分別取出來，用 `digit1`、`digit2`、`digit3` 來記錄:
+
+```C++
+void CounterUI::SetCount(int c)
+{
+    this->count = c;
+
+    if (c < 0) {
+        this->digit1 = 0;
+        this->digit2 = 0;
+        this->digit3 = 0;
+    } else if (c < 10) {
+        this->digit1 = 0;
+        this->digit2 = 0;
+        this->digit3 = c;
+    } else if (c < 100) {
+        this->digit1 = 0;
+        this->digit2 = c / 10;
+        this->digit3 = c % 10;
+    } else {
+        this->digit1 = c / 100;
+        this->digit2 = (c % 100) / 10;
+        this->digit3 = c % 10;
+    }
+}
+```
+
+當呼叫 `Redraw` (即視窗要求元件將其本身繪製於視窗圖層之繪圖區域) 時，依照前述 `digit1`、`digit2`、`digit3` 來繪製正確的圖案
+
+```C++
+int CounterUI::Redraw()
+{
+    this->window->UpdateWindowTexture(this->background, this->background_rect);
+    this->window->UpdateWindowTexture(this->digit[this->digit1], this->digit1_rect);
+    this->window->UpdateWindowTexture(this->digit[this->digit2], this->digit2_rect);
+    this->window->UpdateWindowTexture(this->digit[this->digit3], this->digit3_rect);
+
+    return 0;
+}
+```
+
+其中 `digit`陣列存的便是透過呼叫 `LoadTextureFromFile`，從檔案中所讀取到的圖片
+
+```C++
+int CounterUI::LoadResources()
+{
+    this->digit[0] = this->window->LoadTextureFromFile("./images/png/d0.png");
+    this->digit[1] = this->window->LoadTextureFromFile("./images/png/d1.png");
+    this->digit[2] = this->window->LoadTextureFromFile("./images/png/d2.png");
+    this->digit[3] = this->window->LoadTextureFromFile("./images/png/d3.png");
+    this->digit[4] = this->window->LoadTextureFromFile("./images/png/d4.png");
+    this->digit[5] = this->window->LoadTextureFromFile("./images/png/d5.png");
+    this->digit[6] = this->window->LoadTextureFromFile("./images/png/d6.png");
+    this->digit[7] = this->window->LoadTextureFromFile("./images/png/d7.png");
+    this->digit[8] = this->window->LoadTextureFromFile("./images/png/d8.png");
+    this->digit[9] = this->window->LoadTextureFromFile("./images/png/d9.png");
+    this->background = this->window->LoadTextureFromFile("./images/png/nums_background.png");
+
+    return 0;
+}
+```
+
