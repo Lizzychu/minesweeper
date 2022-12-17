@@ -208,6 +208,6 @@ int FaceButtonUI::HandleMouseButtonEvent(SDL_MouseButtonEvent *event)
 
 ![face_pressed.png](https://github.com/Lizzychu/minesweeper/blob/master/images/png/face_pressed.png)
 
-若是左鍵上彈 (SDL_MOUSEBUTTONUP)，設定為 unpressed 狀態如下圖
+若是左鍵上彈 (SDL_MOUSEBUTTONUP)，設定為 unpressed 狀態如下圖，並同時通知 `MineGame` 做 `Reset`
 
 ![face_unpressed.png](https://github.com/Lizzychu/minesweeper/blob/master/images/png/face_unpressed.png)
