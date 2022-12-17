@@ -24,7 +24,9 @@
   * `MineGameTimer`: 這是一個基於 [SDL Timer](https://wiki.libsdl.org/SDL2/SDL_AddTimer)的計時器，我們用這個 C++ class 來封裝 SDL Timer，並定時觸發 SDL Event 讓 ```MineGameWindow``` (即主視窗) 來處理
   * `SplashScreen`: 這是 splash screen (過場動畫) 的實現，我們用這個 C++ class 來實現過場動畫，讓玩家獲勝時能獲得老師的微笑
 
-上述所有程式碼都放在 ***ui.h*** 和 ***ui.cpp*** 內
+上述所有程式碼都放在 ***ui.h*** 和 ***ui.cpp*** 內，GUI 與 `MineGame` 互動示意如下
+
+![gui-game-interaction.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/gui-game-interaction.png)
 
 ## GUI 程式碼
 
@@ -32,7 +34,7 @@
 
 程式進入點在 ***main.cpp*** 內。從下方程式碼中可以看到，`main` function 在初始化 SDL 相關資源後，先創建 `MineGam` (即踩地雷遊戲)這個 class。創建完後，更進一步創建 `MineGameWindowUI` (即 GUI 視窗)，並將剛剛創建的 `MineGame` 傳給 GUI 視窗讓兩者可以進行互動。再下一步，令 GUI 透過 `CreateComponents` 建立所有元件，此後便令 GUI 視窗進入 `ProcessEvents` 開始處理使用者輸入。
 
-`ProcessEvents` 內是一個無限迴圈，在視窗程式未關閉之前(即收到 [SDL_QUIT 事件](https://wiki.libsdl.org/SDL2/SDL_EventType))，程式會停在這行。
+`ProcessEvents` 內是一個無限迴圈，在視窗程式未關閉之前(即收到 [SDL_QUIT 事件](https://wiki.libsdl.org/SDL2/SDL_EventType))，程式會停在這行。***上圖顯示 GUI 與 `MineGame` 之間的互動主要都是發生在這個 function 內***。
 
 一旦收到 SDL_QUIT 事件，程式會跳出 `ProcessEvents` 內的無限迴圈，進而執行 `DestroyComponents` 釋放所有元件及元件資源。接著 `MineGameWindowUI` 會被 delete，視窗因而被消滅，之後 `MineGame` 被 delete，釋放 `MineGame` 配置的空間與資源，程式最後呼叫 [SDL_Quit](https://wiki.libsdl.org/SDL2/SDL_Quit) 釋放 SDL 配置的資源，至此程式結束，`main` return 0。
 
@@ -71,6 +73,10 @@ int main(int argc, char** argv)
 ```
 ### 視窗
 
+視窗代表的是螢幕上一個矩形的可視區域(如下圖)，我們的 GUI 程式便是透過 SDL library 繪製視窗，透過視窗與玩家互動
+
+![gui-window.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/gui-window.png)
+
 #### Member variables
 視窗由 `MineGameWindowUI` 這個 C++ class 實現，他的 member variable 可以分為幾類
  * `MineGame`相關
@@ -90,6 +96,10 @@ int main(int argc, char** argv)
  * 計時器
    * `splash_timer`: 一個指向 `MineGameTimer` 的 pointer，用於過場畫面(即 `winning_splash`)的計時
    * `count_down_timer`: 一個指向 `MineGameTimer` 的 pointer，用於遊戲經過時間的計時
+
+以下為視窗各元件之示意圖
+
+![gui-components.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/gui-components.png)
 
 #### Member functions
 
@@ -138,6 +148,8 @@ int MineGameWindowUI::ProcessEvents()
 除上述主要進入點之外，`MineGameWindowUI`亦提供一些 function 讓元件可以與之互動
  * `LoadTextureFromFile`: 讀取一個 png 檔案，並將之轉為 texture，可用於後續視窗繪圖
  * `UpdateWindowTexture`: 讓各元件可以將它內部保有的 texture 繪製於視窗上
+
+
 
 
 
