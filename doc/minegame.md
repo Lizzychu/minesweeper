@@ -69,6 +69,10 @@
    * `GetDirtyGrids`: 操作遊戲後，會有部分格子的狀態被更新，透過此項操作可以獲得所有被更新格子的狀態(即 `grid_dirty_map` 為 `true` 的所有格子)。
    * `ClearDirtyGrids`: 當透過 `GetDirtyGrids` 取得所以格子的新狀態後，呼叫此 function 來重設 `grid_dirty_map` 回 `false`
 
+以下為遊戲狀態與操作之互動關係
+
+![game-state.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/game-state.png)
+
 ## 與 MineGame 互動
 
 透過上述介紹，可以了解到與 `MineGame` 互動，基本上是透過 `Open` 和 `TouchFlag` 來告訴 `MineGame` 玩家的操作，待操作完成後呼叫 `GetGameState` 確認結果，並呼叫 `GetDirtyGrids` 與 `ClearDirtyGrids` 獲得每一格的變化，將之反映給玩家。
@@ -76,6 +80,10 @@
 透過這樣的設計，不管是 GUI 介面或文字介面都可以用同樣的方式來和 `MineGame` 溝通，使用者介面僅需實作以下兩點即可
 1. ***將操作翻譯給*** `MineGame`: 即收到操作後，轉呼叫 `Open` 或 `TouchFlag`。以 GUI 介面為例，當滑鼠左鍵點擊時，GUI 介面須將滑鼠點擊位置轉換為每一格的座標 (x, y)，然後呼叫 `Open(x, y)`，藉此告訴 `MineGame` 玩家的操作
 2. ***將結果更新至介面***: 當操作完成後，呼叫 `GetGameState`、`GetDirtyGrids`、`ClearDirtyGrids` 並依據各使用者介面特性(例如 GUI 介面就是去繪圖更新視窗內容、文字介面就是更新文字)將操作結果反映給玩家
+
+以下為 [GUI](https://github.com/Lizzychu/minesweeper/blob/master/doc/gui.md) 與遊戲互動關係之示意圖
+
+![game-state.png](https://github.com/Lizzychu/minesweeper/blob/master/doc/images/gui-game-interaction.png)
 
 ## MineGame FAQ
 ***Q.*** 為什麼要等玩家第一次開啟圖面格子後，才放置地雷?
